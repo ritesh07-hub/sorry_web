@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For Anjali</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,500&family=Karla:wght@400;500;600&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #221726;
+    --bg-2: #2b1c30;
+    --ink: #f3ece6;
+    --ink-soft: #c8bcc9;
+    --accent: #9c8aa8;
+    --accent-2: #7c8aa3;
+    --line: rgba(243,236,230,0.14);
+    --particle: #b6c3dd;
+    --transition-slow: 900ms cubic-bezier(.4,0,.2,1);
+  }
+  body.romantic{
+    --bg: #2c1420;
+    --bg-2: #38182a;
+    --ink: #fbf1e7;
+    --ink-soft: #e8c9c2;
+    --accent: #e8a24c;
+    --accent-2: #e28a97;
+    --line: rgba(251,241,231,0.16);
+    --particle: #f0c98a;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background: radial-gradient(ellipse at top, var(--bg-2), var(--bg) 70%);
+    color: var(--ink);
+    font-family:'Karla', sans-serif;
+    overflow-x:hidden;
+    transition: background var(--transition-slow), color var(--transition-slow);
+    min-height:100vh;
+  }
+  body.locked{ overflow:hidden; height:100vh; }
+
+  /* particle field */
+  #particles{ position:fixed; inset:0; pointer-events:none; z-index:1; overflow:hidden; }
+  .drop{
+    position:absolute; top:-5%;
+    width:2px; height:14px; border-radius:2px;
+    background: linear-gradient(var(--particle), transparent);
+    opacity:.55;
+    animation: fall linear forwards;
+  }
+  @keyframes fall{ to{ transform:translateY(110vh); opacity:0; } }
+  .spark{
+    position:absolute; bottom:-5%;
+    width:6px; height:6px; border-radius:50%;
+    background: var(--particle);
+    box-shadow:0 0 8px 2px var(--particle);
+    opacity:.7;
+    animation: rise linear forwards;
+  }
+  @keyframes rise{ to{ transform:translate(var(--dx,0), -110vh); opacity:0; } }
+
+  /* ===== envelope screen ===== */
+  #envelope-screen{
+    position:fixed; inset:0; z-index:50;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background: radial-gradient(ellipse at center, var(--bg-2), var(--bg) 75%);
+    transition: opacity 700ms ease, visibility 700ms ease;
+  }
+  #envelope-screen.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+  .env-eyebrow{
+    font-family:'Karla'; letter-spacing:.24em; text-transform:uppercase;
+    font-size:.7rem; color:var(--ink-soft); margin-bottom:22px; text-align:center;
+  }
+  .envelope{
+    width:min(78vw, 320px); height:min(55vw, 210px);
+    position:relative; cursor:pointer;
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,.45));
+  }
+  .env-body{
+    position:absolute; inset:0;
+    background: linear-gradient(180deg, #f3ece6, #e6dcd4);
+    border-radius:6px;
+  }
+  .env-flap{
+    position:absolute; top:0; left:0; width:0; height:0;
+    border-left: calc(min(78vw, 320px) / 2) solid transparent;
+    border-right: calc(min(78vw, 320px) / 2) solid transparent;
+    border-top: calc(min(55vw, 210px) * 0.62) solid #ddccc0;
+    transform-origin: top center;
+    transition: transform 800ms cubic-bezier(.4,0,.2,1);
+    z-index:3;
+  }
+  .envelope.open .env-flap{ transform: rotateX(178deg); }
+  .env-shadow-fold-l, .env-shadow-fold-r{
+    position:absolute; bottom:0; width:0; height:0;
+    border-bottom: calc(min(55vw, 210px) * 0.42) solid rgba(0,0,0,0.06);
+  }
+  .env-shadow-fold-l{ left:0; border-left: calc(min(78vw,320px)/2) solid transparent; }
+  .env-shadow-fold-r{ right:0; border-right: calc(min(78vw,320px)/2) solid transparent; }
+  .seal{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-58%);
+    width:52px; height:52px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, var(--accent-2), var(--accent) 70%);
+    display:flex; align-items:center; justify-content:center;
+    z-index:4; box-shadow:0 4px 10px rgba(0,0,0,.35);
+    transition: transform 400ms ease;
+  }
+  .envelope:hover .seal{ transform:translate(-50%,-58%) scale(1.06); }
+  .seal svg{ width:22px; height:22px; }
+  .env-hint{
+    margin-top:26px; font-size:.85rem; color:var(--ink-soft); letter-spacing:.05em;
+  }
+  .env-name{
+    font-family:'Cormorant Garamond'; font-style:italic; font-size:clamp(2rem,7vw,2.8rem);
+    margin-bottom:10px; color:var(--ink);
+  }
+
+  /* ===== toggle ===== */
+  #mode-toggle{
+    position:fixed; top:20px; right:20px; z-index:40;
+    display:flex; align-items:center; gap:10px;
+    background: rgba(0,0,0,0.25); backdrop-filter: blur(6px);
+    border:1px solid var(--line); border-radius:999px;
+    padding:8px 14px; font-size:.78rem; color:var(--ink-soft);
+    transition: opacity 500ms ease;
+  }
+  #mode-toggle.hidden{ opacity:0; pointer-events:none; }
+  .switch{
+    width:42px; height:22px; border-radius:999px; background:rgba(255,255,255,.15);
+    position:relative; cursor:pointer; border:1px solid var(--line);
+  }
+  .switch::after{
+    content:''; position:absolute; top:2px; left:2px; width:16px; height:16px;
+    border-radius:50%; background:var(--accent); transition: left 300ms ease, background 300ms ease;
+  }
+  body.romantic .switch::after{ left:22px; }
+
+  /* ===== main content ===== */
+  main{ position:relative; z-index:2; }
+  .wrap{
+    max-width:640px; margin:0 auto; padding: 120px 28px 100px;
+  }
+  .eyebrow{
+    font-size:.72rem; letter-spacing:.24em; text-transform:uppercase;
+    color:var(--accent-2); margin-bottom:18px;
+    opacity:0; transform:translateY(14px); transition: all 800ms ease;
+  }
+  h1.letter-title{
+    font-family:'Cormorant Garamond'; font-style:italic; font-weight:500;
+    font-size:clamp(2.4rem, 6vw, 3.6rem); line-height:1.1; margin-bottom:44px;
+    opacity:0; transform:translateY(14px); transition: all 800ms ease 80ms;
+  }
+  p.para{
+    font-size:1.08rem; line-height:1.85; color:var(--ink-soft);
+    margin-bottom:26px; max-width:56ch;
+    opacity:0; transform:translateY(16px); transition: all 800ms ease;
+  }
+  .reveal.in{ opacity:1; transform:none; }
+
+  .memory-box{
+    border:1px dashed var(--line); border-radius:10px;
+    padding:20px 22px; margin: 10px 0 34px;
+    font-family:'Cormorant Garamond'; font-style:italic; font-size:1.15rem;
+    color: var(--ink-soft); opacity:.85;
+    background: rgba(255,255,255,0.02);
+    opacity:0; transform:translateY(16px); transition: all 800ms ease;
+  }
+
+  .quotes{ margin: 20px 0 44px; padding-left:18px; border-left:2px solid var(--line); }
+  .quote-label{
+    font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--accent-2);
+    margin-bottom:16px;
+  }
+  .quote{
+    font-family:'Caveat'; font-size:1.55rem; line-height:1.4; color:var(--ink);
+    margin-bottom:16px; opacity:0; transform:translateX(-10px); transition: all 700ms ease;
+  }
+  .quote.in{ opacity:1; transform:none; }
+
+  .closing{
+    font-size:1.08rem; line-height:1.85; color:var(--ink-soft); margin-bottom:50px; max-width:56ch;
+    opacity:0; transform:translateY(16px); transition: all 800ms ease;
+  }
+  .signature{
+    font-family:'Caveat'; font-size:2.2rem; color:var(--ink);
+    opacity:0; transform:translateY(10px); transition: all 800ms ease;
+  }
+
+  footer{
+    text-align:center; padding: 40px 20px 70px; color:var(--ink-soft);
+    font-size:.78rem; letter-spacing:.08em; opacity:.6;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body class="locked">
+
+<div id="particles"></div>
+
+<div id="envelope-screen">
+  <div class="env-eyebrow">a letter, waiting</div>
+  <div class="env-name">For Anjali</div>
+  <div class="envelope" id="envelope">
+    <div class="env-shadow-fold-l"></div>
+    <div class="env-shadow-fold-r"></div>
+    <div class="env-body"></div>
+    <div class="env-flap"></div>
+    <div class="seal">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-8-5.2-8-11.2C4 6 6.5 4 9.2 4c1.6 0 2.8.8 2.8 2.4C12 4.8 13.2 4 14.8 4 17.5 4 20 6 20 9.8 20 15.8 12 21 12 21z" fill="#221726"/></svg>
+    </div>
+  </div>
+  <div class="env-hint">tap to open</div>
+</div>
+
+<div id="mode-toggle" class="hidden">
+  <span>sad</span>
+  <div class="switch" id="switch"></div>
+  <span>hopeful</span>
+</div>
+
+<main>
+  <div class="wrap">
+
+    <div id="sad-content">
+      <div class="eyebrow reveal">an apology, written honestly</div>
+      <h1 class="letter-title reveal">To Anjali,</h1>
+
+      <p class="para reveal">I've rewritten this more times than I want to admit, because nothing about it felt like enough. But saying nothing felt worse. So here it is — a little clumsy, but true.</p>
+
+      <p class="para reveal">That night, I said things I didn't mean, in a moment I should have handled with more care. Frustration got the better of me, and I let it turn into words that hurt you — the one person I care about protecting from things like that, not causing them.</p>
+
+      <p class="para reveal">I keep thinking about how it must have felt on your side of that conversation. I'm not going to explain it away, or tell you it wasn't a big deal, because it was. I hurt you, and I'm sorry.</p>
+
+      <div class="memory-box reveal">
+        [Write a specific memory here — something small only the two of you would remember. This spot is left for you on purpose.]
+      </div>
+
+      <div class="quotes">
+        <div class="quote-label">things I want you to know</div>
+        <div class="quote">You are not the argument. You're everything before it, and everything I want after it.</div>
+        <div class="quote">I'd rather sit in this uncomfortable honesty than have a quiet that's just you pretending it's fine.</div>
+        <div class="quote">I'm not asking you to forget it happened. I'm asking for the chance to be better than that moment was.</div>
+      </div>
+
+      <p class="closing reveal">I know words are easy right after. What I actually want is to show you, slowly, that it was one bad night — not who I am with you. Whenever you're ready to talk, I'm here. No rush.</p>
+
+      
+    </div>
+
+    <div id="romantic-content" style="display:none;">
+      <div class="eyebrow reveal">and this is the part that's still true</div>
+      <h1 class="letter-title reveal">For Anjali, always</h1>
+
+      <p class="para reveal">Underneath the apology is the actual point: I love you, and one hard night doesn't get to undo that. It doesn't get to be the loudest thing between us.</p>
+
+      <p class="para reveal">You're the person I want to tell things to first. The one whose day I ask about before my own gets a word in. Losing my temper with you is the opposite of everything I actually want for us — I know that, and I'm not going to forget it again.</p>
+
+      <div class="memory-box reveal">
+        [Add something specific you love about her, or a memory that makes you smile — this spot is left for you on purpose.]
+      </div>
+
+      <div class="quotes">
+        <div class="quote-label">reasons, not excuses</div>
+        <div class="quote">You make ordinary days feel like something worth showing up for.</div>
+        <div class="quote">I'd choose the hard conversation with you over an easy one with anyone else.</div>
+        <div class="quote">This isn't me trying to win you back. It's me trying to be someone worth keeping.</div>
+      </div>
+
+      <p class="closing reveal">So this is me — not perfect, still learning, but trying. For you, for us, and for every ordinary day after this one.</p>
+
+      <div class="signature reveal">— [Your Name]</div>
+    </div>
+
+  </div>
+  <footer>made slowly, and meant honestly.</footer>
+</main>
+
+<script>
+  const envelope = document.getElementById('envelope');
+  const envScreen = document.getElementById('envelope-screen');
+  const toggleBar = document.getElementById('mode-toggle');
+  const body = document.body;
+
+  envelope.addEventListener('click', () => {
+    envelope.classList.add('open');
+    setTimeout(() => {
+      envScreen.classList.add('hidden');
+      toggleBar.classList.remove('hidden');
+      body.classList.remove('locked');
+      revealOnScroll();
+    }, 650);
+  });
+
+  const sw = document.getElementById('switch');
+  const sadContent = document.getElementById('sad-content');
+  const romanticContent = document.getElementById('romantic-content');
+
+  sw.addEventListener('click', () => {
+    const goingRomantic = !body.classList.contains('romantic');
+    body.classList.toggle('romantic', goingRomantic);
+    if (goingRomantic) {
+      sadContent.style.display = 'none';
+      romanticContent.style.display = 'block';
+    } else {
+      romanticContent.style.display = 'none';
+      sadContent.style.display = 'block';
+    }
+    revealOnScroll(true);
+  });
+
+  function revealOnScroll(force){
+    const els = document.querySelectorAll('.reveal, .quote');
+    els.forEach((el, i) => {
+      if (force) { el.classList.remove('in'); }
+      const rect = el.getBoundingClientRect();
+      if (force || rect.top < window.innerHeight * 0.9) {
+        setTimeout(() => el.classList.add('in'), i * 60);
+      }
+    });
+  }
+  window.addEventListener('scroll', () => revealOnScroll());
+
+  // particle field, respects reduced motion
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const field = document.getElementById('particles');
+  if (!reduceMotion) {
+    setInterval(() => {
+      const isRomantic = body.classList.contains('romantic');
+      const el = document.createElement('div');
+      if (isRomantic) {
+        el.className = 'spark';
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.setProperty('--dx', (Math.random() * 60 - 30) + 'px');
+        el.style.animationDuration = (5 + Math.random() * 4) + 's';
+      } else {
+        el.className = 'drop';
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.animationDuration = (2.5 + Math.random() * 2) + 's';
+      }
+      field.appendChild(el);
+      setTimeout(() => el.remove(), 9000);
+    }, 380);
+  }
+</script>
+
+</body>
+</html>
